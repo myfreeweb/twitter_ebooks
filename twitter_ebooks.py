@@ -22,7 +22,7 @@ class Generator:
         for tweet in tweets:
             if "@" in tweet or tweet.startswith("RT"):
                 continue
-            words += [word for word in tweet.split() if word[0] != "@" and not "http://" in word]
+            words += [word for word in tweet.split() if word[0] not in ["@", "#"] and not "http://" in word and not "https://" in word]
         self.words = words
         self.model = nltk.Text(words)
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         print "Usage: %s @parody_account" % sys.argv[0]
         sys.exit()
 
-    username = sys.argv[1]
+    username = sys.argv[1].replace('@','')
     target = SETTINGS[username]['target'].replace('@','')
 
     if not os.path.exists(os.path.join(TOPDIR, 'users', target, 'tweets')):
