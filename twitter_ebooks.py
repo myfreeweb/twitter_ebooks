@@ -14,6 +14,8 @@ SETTINGS = yaml.load(open(os.path.join(TOPDIR, 'settings.yml')))
 
 class Generator:
     def __init__(self, target_user, settings):
+        estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.2)
+        self._ngram_model = NgramModel(2, self.model, estimator)
         self.target_user = target_user.replace('@', '')
         self.settings = settings
         dataset = open(os.path.join(TOPDIR, 'users', self.target_user, 'tweets')).read()
@@ -28,9 +30,6 @@ class Generator:
 
     def raw_words(self, length=100):
         """Generates a list of words using an NLTK NgramModel."""
-        if not hasattr(self, '_ngram_model'):
-            estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.2)
-            self._ngram_model = NgramModel(2, self.model, estimator)
         return self._ngram_model.generate(length, [random.choice(self.words)])[1:]
 
     def smart_trim(self, genwords):
