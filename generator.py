@@ -1,24 +1,14 @@
 #!/usr/bin/env python
 
-import nltk
-from nltk import LidstoneProbDist, NgramModel
 import re
+import nltk
 import random
-import os
-import yaml
 import twitter
-import sys
-
-TOPDIR = os.path.dirname(os.path.realpath(__file__))
-SETTINGS = yaml.load(open(os.path.join(TOPDIR, 'settings.yml')))
+from nltk import LidstoneProbDist, NgramModel
 
 class Generator:
-    def __init__(self, target_user, settings):
-        estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.2)
-        self._ngram_model = NgramModel(2, self.model, estimator)
-        self.target_user = target_user.replace('@', '')
-        self.settings = settings
-        dataset = open(os.path.join(TOPDIR, 'users', self.target_user, 'tweets')).read()
+    def __init__(self, dataset, capitalize=False):
+        self.capitalize = capitalize
         tweets = dataset.split("\n")
         words = []
         for tweet in tweets:
@@ -27,6 +17,8 @@ class Generator:
             words += [word for word in tweet.split() if word[0] not in ["@", "#"] and not "http://" in word and not "https://" in word]
         self.words = words
         self.model = nltk.Text(words)
+        estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.2)
+        self._ngram_model = NgramModel(2, self.model, estimator)
 
     def raw_words(self, length=100):
         """Generates a list of words using an NLTK NgramModel."""
@@ -56,15 +48,14 @@ class Generator:
 
     def tweetworthy(self):
         """Generate some tweetable text."""
-        capitalize = self.settings['capitalize'] if self.settings.has_key('capitalize') else False
         genwords = self.raw_words()
 
-        if capitalize:
+        if self.capitalize:
             genwords = self.smart_trim(genwords)
 
         while len(genwords) > 1 and sum([len(word)+1 for word in genwords]) > 140:
             genwords.pop()
-            if capitalize:
+            if self.capitalize:
                 genwords[-1] += random.choice(['.', '!', '?'])
 
         product = " ".join(genwords)
@@ -80,23 +71,3 @@ class Generator:
                 product = product.replace(enc, '')
 
         return product
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print "Usage: %s @parody_account" % sys.argv[0]
-        sys.exit()
-
-    username = sys.argv[1].replace('@','')
-    target = SETTINGS[username]['target'].replace('@','')
-
-    if not os.path.exists(os.path.join(TOPDIR, 'users', target, 'tweets')):
-        from update_dataset import update_dataset
-        update_dataset(target)
-
-    gen = Generator(target, SETTINGS[username])
-    tweet = gen.tweetworthy()
-    print tweet
-
-    api = twitter.Api(**SETTINGS[username]['auth'])
-    api.PostUpdate(tweet)
