@@ -18,7 +18,7 @@ class Generator:
         self.words = words
         self.model = nltk.Text(words)
         estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.2)
-        self._ngram_model = NgramModel(2, self.model, estimator)
+        self._ngram_model = NgramModel(2, self.model, estimator=estimator)
 
     def raw_words(self, length=100):
         """Generates a list of words using an NLTK NgramModel."""
