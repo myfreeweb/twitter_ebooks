@@ -4,7 +4,7 @@ import os
 import time
 import json
 import redis
-import twitter
+import tweepy
 import urlparse
 from generator import Generator
 from update_dataset import update_dataset
@@ -15,7 +15,9 @@ username   = os.environ["EBOOKS_USERNAME"]
 target     = os.environ["EBOOKS_TARGET"]
 
 auth = json.loads(os.environ["EBOOKS_AUTH"])
-api = twitter.Api(**auth)
+_auth = tweepy.OAuthHandler(auth['consumer_key'], auth['consumer_secret'])
+_auth.set_access_token(auth['access_token_key'], auth['access_token_secret'])
+api = tweepy.API(_auth)
 
 if os.environ.has_key("REDISTOGO_URL"):
     urlparse.uses_netloc.append("redis")
@@ -32,5 +34,5 @@ while "they're taking the hobbits to Isengard":
         db.set("last_id", last_id)
     gen = Generator(db.get("data"), capitalize)
     tweet = gen.tweetworthy()
-    api.PostUpdate(tweet)
+    api.update_status(tweet)
     time.sleep(interval)
