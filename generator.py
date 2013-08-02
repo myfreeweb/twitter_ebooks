@@ -3,7 +3,6 @@
 import re
 import nltk
 import random
-import twitter
 from nltk import LidstoneProbDist, NgramModel
 
 class Generator:

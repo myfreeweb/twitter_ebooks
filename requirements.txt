@@ -4,6 +4,8 @@ hiredis==0.1.1
 httplib2==0.7.4
 nltk==2.0.2
 oauth2==1.5.211
-python-twitter==0.8.2
+tweepy
 redis==2.4.12
 simplejson==2.5.0
+
+numpy
